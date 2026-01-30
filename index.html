@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Beach Tennis Cloud (Auth)</title>
+    <title>Beach Tennis Cloud</title>
     
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
     
@@ -57,7 +57,7 @@
         .header-title { font-weight: 600; font-size: 1.1rem; }
         .auth-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 
-        /* Login Modal */
+        /* Login Modal & Inputs */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 2000;
@@ -68,6 +68,14 @@
             width: 100%; max-width: 350px; border: 1px solid #444;
         }
         
+        /* Password Toggle Style */
+        .password-group { position: relative; }
+        .password-group input { padding-right: 45px; } /* Espaço para o ícone */
+        .password-toggle-icon {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; font-size: 1.2rem; user-select: none;
+        }
+
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
             background: var(--bg-card); display: flex; justify-content: space-around;
@@ -196,9 +204,14 @@
             <div class="form-group">
                 <input type="email" v-model="authEmail" placeholder="E-mail">
             </div>
-            <div class="form-group">
-                <input type="password" v-model="authPassword" placeholder="Senha">
+            
+            <div class="form-group password-group">
+                <input :type="showPassword ? 'text' : 'password'" v-model="authPassword" placeholder="Senha">
+                <span class="password-toggle-icon" @click="showPassword = !showPassword">
+                    {{ showPassword ? '🙈' : '👁️' }}
+                </span>
             </div>
+
             <button class="btn btn-primary" @click="login">Entrar</button>
             <button class="btn btn-outline" @click="showLoginModal = false">Cancelar</button>
         </div>
@@ -485,7 +498,7 @@
 </div>
 
 <script>
-    // --- COLE SUA CONFIGURAÇÃO DO FIREBASE AQUI ---
+    // --- CONFIGURAÇÃO DO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCAZ7dVN0SZE6YGkDe35MrAfQZAzbIT_gU",
         authDomain: "beach-tennis-history.firebaseapp.com",
@@ -507,6 +520,7 @@
             showLoginModal: false,
             authEmail: '',
             authPassword: '',
+            showPassword: false, // Controle do olho da senha
 
             view: 'setup',
             newPlayer: '',
@@ -579,6 +593,8 @@
                 if (this.user) {
                     if(confirm("Deseja sair (Logout)?")) {
                         firebase.auth().signOut();
+                        this.authPassword = ''; // Limpa senha ao sair
+                        this.showPassword = false;
                     }
                 } else {
                     this.showLoginModal = true;
@@ -591,7 +607,8 @@
                 firebase.auth().signInWithEmailAndPassword(this.authEmail, this.authPassword)
                     .then(() => {
                         this.showLoginModal = false;
-                        this.authPassword = ''; // Limpa senha
+                        this.authPassword = ''; // Limpa senha da memória do form
+                        this.showPassword = false;
                         this.loading = false;
                     })
                     .catch(error => {
