@@ -35,7 +35,6 @@
 
         .app-container { max-width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
         
-        /* Loading Overlay */
         .loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-dark); z-index: 9999;
@@ -48,7 +47,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Header com Login */
         header {
             background-color: var(--bg-card); padding: 15px;
             display: flex; justify-content: space-between; align-items: center;
@@ -57,7 +55,6 @@
         .header-title { font-weight: 600; font-size: 1.1rem; }
         .auth-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 
-        /* Login Modal & Inputs */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 2000;
@@ -68,9 +65,8 @@
             width: 100%; max-width: 350px; border: 1px solid #444;
         }
         
-        /* Password Toggle Style */
         .password-group { position: relative; }
-        .password-group input { padding-right: 45px; } /* Espaço para o ícone */
+        .password-group input { padding-right: 45px; } 
         .password-toggle-icon {
             position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
             cursor: pointer; font-size: 1.2rem; user-select: none;
@@ -119,7 +115,6 @@
         }
         .btn-delete { color: var(--danger); padding: 5px 10px; font-weight: bold; cursor: pointer;}
 
-        /* Scoreboard */
         .scoreboard-container { display: flex; flex-direction: column; height: calc(100vh - var(--nav-height) - 60px); }
         .match-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -154,7 +149,6 @@
         .btn-point-b { background: var(--secondary); color: #000; }
         .btn-point-action:active { filter: brightness(0.9); }
 
-        /* History & Manual Form */
         .history-card {
             background: var(--bg-card); border-radius: 12px; padding: 15px;
             margin-bottom: 15px; border-left: 5px solid #555;
@@ -175,7 +169,6 @@
         .score-inputs { display: flex; gap: 10px; justify-content: center; }
         .score-input-group { flex: 0 0 80px; text-align: center; }
 
-        /* Stats Table */
         .stats-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .stats-table th { text-align: left; padding: 10px; background: #333; color: var(--text-muted); font-weight: 600; }
         .stats-table td { padding: 12px 10px; border-bottom: 1px solid #333; }
@@ -183,7 +176,6 @@
         .stats-rank { color: var(--primary); font-weight: bold; width: 30px; }
         .stats-win-rate { font-size: 0.8rem; color: var(--text-muted); }
 
-        /* Login Placeholder */
         .login-placeholder {
             text-align: center; margin-top: 50px; color: var(--text-muted); padding: 20px;
         }
@@ -219,7 +211,6 @@
 
     <header v-if="view !== 'match'">
         <div class="header-title">Beach Tennis Cloud ☁️</div>
-        
         <button class="auth-btn" @click="toggleAuth">
             <span v-if="user" title="Admin Logado">🔓</span>
             <span v-else style="color: var(--danger);" title="Modo Leitura">🔒</span>
@@ -273,11 +264,11 @@
                 <label class="team-a-color" style="font-weight: bold;">TIME A (Laranja)</label>
                 <select v-model="matchSetup.teamA1" style="margin-bottom: 10px;">
                     <option value="" disabled>Selecionar Jogador 1</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(matchSetup, 'teamA1')" :value="p.name">{{ p.name }}</option>
                 </select>
                 <select v-model="matchSetup.teamA2">
                     <option value="" disabled>Selecionar Jogador 2</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(matchSetup, 'teamA2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
 
@@ -285,11 +276,11 @@
                 <label class="team-b-color" style="font-weight: bold;">TIME B (Turquesa)</label>
                 <select v-model="matchSetup.teamB1" style="margin-bottom: 10px;">
                     <option value="" disabled>Selecionar Jogador 1</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(matchSetup, 'teamB1')" :value="p.name">{{ p.name }}</option>
                 </select>
                 <select v-model="matchSetup.teamB2">
                     <option value="" disabled>Selecionar Jogador 2</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(matchSetup, 'teamB2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
 
@@ -367,11 +358,11 @@
             <div class="score-inputs">
                 <select v-model="manualMatch.teamA1" style="font-size: 0.9rem; padding: 10px; width: 48%;">
                     <option value="">Jogador 1</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(manualMatch, 'teamA1')" :value="p.name">{{ p.name }}</option>
                 </select>
                 <select v-model="manualMatch.teamA2" style="font-size: 0.9rem; padding: 10px; width: 48%;">
                     <option value="">Jogador 2</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(manualMatch, 'teamA2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
 
@@ -379,11 +370,11 @@
             <div class="score-inputs">
                 <select v-model="manualMatch.teamB1" style="font-size: 0.9rem; padding: 10px; width: 48%;">
                     <option value="">Jogador 1</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(manualMatch, 'teamB1')" :value="p.name">{{ p.name }}</option>
                 </select>
                 <select v-model="manualMatch.teamB2" style="font-size: 0.9rem; padding: 10px; width: 48%;">
                     <option value="">Jogador 2</option>
-                    <option v-for="p in players" :value="p.name">{{ p.name }}</option>
+                    <option v-for="p in getAvailablePlayers(manualMatch, 'teamB2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
 
@@ -498,7 +489,7 @@
 </div>
 
 <script>
-    // --- CONFIGURAÇÃO DO FIREBASE ---
+    // --- CONFIGURAÇÃO DO FIREBASE (JÁ INSERIDA) ---
     const firebaseConfig = {
         apiKey: "AIzaSyCAZ7dVN0SZE6YGkDe35MrAfQZAzbIT_gU",
         authDomain: "beach-tennis-history.firebaseapp.com",
@@ -516,11 +507,11 @@
             loading: true,
             
             // AUTH STATE
-            user: null, // Objeto do usuário se logado
+            user: null, 
             showLoginModal: false,
             authEmail: '',
             authPassword: '',
-            showPassword: false, // Controle do olho da senha
+            showPassword: false,
 
             view: 'setup',
             newPlayer: '',
@@ -539,7 +530,6 @@
                 }
                 this.db = firebase.firestore();
                 
-                // Monitora Auth
                 firebase.auth().onAuthStateChanged(user => {
                     this.user = user;
                     this.loading = false;
@@ -588,12 +578,26 @@
             }
         },
         methods: {
+            // --- Helper para filtrar jogadores repetidos no Select ---
+            getAvailablePlayers(contextObj, currentKey) {
+                // Coleta todos os nomes já selecionados neste contexto (Setup ou Manual)
+                const selected = [
+                    contextObj.teamA1, contextObj.teamA2,
+                    contextObj.teamB1, contextObj.teamB2
+                ];
+
+                // Retorna jogadores que NÃO estão selecionados (exceto se for o próprio campo atual)
+                return this.players.filter(p => {
+                    return !selected.includes(p.name) || p.name === contextObj[currentKey];
+                });
+            },
+
             // --- AUTH METHODS ---
             toggleAuth() {
                 if (this.user) {
                     if(confirm("Deseja sair (Logout)?")) {
                         firebase.auth().signOut();
-                        this.authPassword = ''; // Limpa senha ao sair
+                        this.authPassword = ''; 
                         this.showPassword = false;
                     }
                 } else {
@@ -607,7 +611,7 @@
                 firebase.auth().signInWithEmailAndPassword(this.authEmail, this.authPassword)
                     .then(() => {
                         this.showLoginModal = false;
-                        this.authPassword = ''; // Limpa senha da memória do form
+                        this.authPassword = ''; 
                         this.showPassword = false;
                         this.loading = false;
                     })
