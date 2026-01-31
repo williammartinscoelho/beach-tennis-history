@@ -175,10 +175,46 @@
         .stats-table tr:nth-child(even) { background: rgba(255,255,255,0.03); }
         .stats-rank { color: var(--primary); font-weight: bold; width: 30px; }
         .stats-win-rate { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .player-link {
+            color: var(--secondary);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+        }
 
         .login-placeholder {
             text-align: center; margin-top: 50px; color: var(--text-muted); padding: 20px;
         }
+        
+        /* Player Details Styles */
+        .profile-header {
+            text-align: center; margin-bottom: 20px; padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        .profile-name { font-size: 1.8rem; color: var(--primary); margin-bottom: 5px; }
+        .profile-stats { display: flex; justify-content: space-around; }
+        .p-stat { text-align: center; }
+        .p-stat-val { font-size: 1.4rem; font-weight: bold; display: block; }
+        .p-stat-lbl { font-size: 0.8rem; color: var(--text-muted); }
+        
+        /* NOVOS ESTILOS DE MATCHUP */
+        .matchup-list { margin-top: 20px; }
+        .matchup-card {
+            background: #252525; padding: 12px; margin-bottom: 10px; border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .matchup-info { flex: 1; }
+        .matchup-partner { color: var(--primary); font-size: 0.9rem; margin-bottom: 4px; font-weight: bold;}
+        .matchup-vs-label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+        .matchup-enemies { font-weight: 600; color: #fff; font-size: 1rem; }
+        
+        .matchup-stats { text-align: right; min-width: 80px;}
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 2px;}
+        .bg-green { background: rgba(6, 214, 160, 0.2); color: var(--success); }
+        .bg-red { background: rgba(231, 29, 54, 0.2); color: var(--danger); }
+        .matchup-games-count { font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 3px;}
     </style>
 </head>
 <body>
@@ -210,7 +246,12 @@
     </div>
 
     <header v-if="view !== 'match'">
+        <div v-if="view === 'player-details'" @click="view = 'stats'" style="cursor: pointer; font-size: 1.2rem; padding-right: 15px;">
+            ⬅️
+        </div>
+        
         <div class="header-title">Beach Tennis Cloud ☁️</div>
+        
         <button class="auth-btn" @click="toggleAuth">
             <span v-if="user" title="Admin Logado">🔓</span>
             <span v-else style="color: var(--danger);" title="Modo Leitura">🔒</span>
@@ -438,6 +479,8 @@
 
     <div class="screen" v-if="view === 'stats'">
         <h3>Ranking (Firebase)</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Toque num nome para ver detalhes</p>
+        
         <div v-if="computedPlayerStats.length === 0" style="text-align: center; color: var(--text-muted); margin-top: 50px;">
             Sem dados suficientes.
         </div>
@@ -456,7 +499,7 @@
                 <tr v-for="(stat, index) in computedPlayerStats" :key="stat.name">
                     <td class="stats-rank">{{ index + 1 }}</td>
                     <td>
-                        <div style="font-weight: bold;">{{ stat.name }}</div>
+                        <div class="player-link" @click="openPlayerDetails(stat)">{{ stat.name }}</div>
                         <div class="stats-win-rate">{{ stat.total }} jogos</div>
                     </td>
                     <td style="text-align: center; color: var(--success); font-weight: bold;">{{ stat.wins }}</td>
@@ -467,7 +510,55 @@
         </table>
     </div>
 
-    <nav class="bottom-nav" v-if="view !== 'match'">
+    <div class="screen" v-if="view === 'player-details'">
+        <div class="profile-header">
+            <div class="profile-name">{{ selectedPlayerStats.name }}</div>
+            <div class="profile-stats">
+                <div class="p-stat">
+                    <span class="p-stat-val">{{ selectedPlayerStats.total }}</span>
+                    <span class="p-stat-lbl">JOGOS</span>
+                </div>
+                <div class="p-stat">
+                    <span class="p-stat-val" style="color: var(--success)">{{ selectedPlayerStats.wins }}</span>
+                    <span class="p-stat-lbl">VITÓRIAS</span>
+                </div>
+                <div class="p-stat">
+                    <span class="p-stat-val" style="color: var(--danger)">{{ selectedPlayerStats.losses }}</span>
+                    <span class="p-stat-lbl">DERROTAS</span>
+                </div>
+                <div class="p-stat">
+                    <span class="p-stat-val">{{ selectedPlayerStats.winRate }}%</span>
+                    <span class="p-stat-lbl">APROV.</span>
+                </div>
+            </div>
+        </div>
+
+        <h4 style="margin-bottom: 10px;">Histórico por Duplas</h4>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
+            Resultados de acordo com o parceiro e dupla adversária:
+        </div>
+
+        <div v-if="playerDoublesStats.length === 0" style="text-align: center; color: var(--text-muted);">
+            Sem registo de jogos em duplas.
+        </div>
+
+        <div class="matchup-list">
+            <div class="matchup-card" v-for="(matchup, index) in playerDoublesStats" :key="index">
+                <div class="matchup-info">
+                    <div class="matchup-partner">Com: {{ matchup.partner }}</div>
+                    <div class="matchup-vs-label">Contra</div>
+                    <div class="matchup-enemies">{{ matchup.enemies }}</div>
+                </div>
+                <div class="matchup-stats">
+                    <div><span class="badge bg-green">{{ matchup.wins }}V</span></div>
+                    <div><span class="badge bg-red">{{ matchup.losses }}D</span></div>
+                    <span class="matchup-games-count">{{ matchup.games }} jogos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" v-if="view !== 'match' && view !== 'player-details'">
         <div class="nav-item" :class="{active: view === 'players'}" @click="view = 'players'">
             <span class="nav-icon">👥</span>
             <span>Jogadores</span>
@@ -489,7 +580,7 @@
 </div>
 
 <script>
-    // --- CONFIGURAÇÃO DO FIREBASE (JÁ INSERIDA) ---
+    // --- CONFIGURAÇÃO DO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCAZ7dVN0SZE6YGkDe35MrAfQZAzbIT_gU",
         authDomain: "beach-tennis-history.firebaseapp.com",
@@ -517,6 +608,9 @@
             newPlayer: '',
             players: [],
             matchHistory: [],
+            
+            // Player Details Logic
+            selectedPlayerStats: null,
             
             showHistoryForm: false,
             manualMatch: { teamA1: '', teamA2: '', teamB1: '', teamB2: '', gamesA: 0, gamesB: 0 },
@@ -575,18 +669,78 @@
                 return Object.values(stats)
                     .map(s => { s.winRate = s.total === 0 ? 0 : Math.round((s.wins / s.total) * 100); return s; })
                     .sort((a, b) => { if (b.wins !== a.wins) return b.wins - a.wins; return b.winRate - a.winRate; });
+            },
+            
+            // --- NOVA LÓGICA DE DUPLAS ---
+            playerDoublesStats() {
+                if (!this.selectedPlayerStats) return [];
+                
+                const targetName = this.selectedPlayerStats.name;
+                const matchups = {}; // Chave: "Parceiro|Rival1|Rival2"
+
+                this.matchHistory.forEach(match => {
+                    // 1. Verifica se o jogador alvo jogou
+                    const inTeamA = match.playersA.includes(targetName);
+                    const inTeamB = match.playersB.includes(targetName);
+                    
+                    if (!inTeamA && !inTeamB) return; 
+
+                    // 2. Define o Time e os Adversários
+                    const myTeamArr = inTeamA ? match.playersA : match.playersB;
+                    const enemyTeamArr = inTeamA ? match.playersB : match.playersA;
+                    
+                    // 3. Descobre o parceiro (quem sobrou no meu time)
+                    const partner = myTeamArr.find(p => p !== targetName);
+                    if (!partner) return; // Segurança caso seja 1x1
+
+                    // 4. Padroniza a string dos rivais (Ordem alfabética para A&B ser igual a B&A)
+                    const enemiesStr = [...enemyTeamArr].sort().join(' & ');
+
+                    // 5. Cria uma chave única para agrupar
+                    const key = `${partner} -> ${enemiesStr}`;
+
+                    // 6. Define Vencedor
+                    const stats = match.finalStats;
+                    let winner = null;
+                    if (stats.setsA > stats.setsB) winner = 'A';
+                    else if (stats.setsB > stats.setsA) winner = 'B';
+                    else {
+                        if (stats.gamesA > stats.gamesB) winner = 'A';
+                        else if (stats.gamesB > stats.gamesA) winner = 'B';
+                    }
+                    
+                    if (!winner) return;
+                    const iWon = (winner === (inTeamA ? 'A' : 'B'));
+
+                    // 7. Agrega dados
+                    if (!matchups[key]) {
+                        matchups[key] = {
+                            partner: partner,
+                            enemies: enemiesStr,
+                            wins: 0, losses: 0, games: 0
+                        };
+                    }
+                    matchups[key].games++;
+                    if (iWon) matchups[key].wins++;
+                    else matchups[key].losses++;
+                });
+
+                // Transforma em array e ordena por qtde de jogos
+                return Object.values(matchups).sort((a, b) => b.games - a.games);
             }
         },
         methods: {
+            openPlayerDetails(playerStat) {
+                this.selectedPlayerStats = playerStat;
+                this.view = 'player-details';
+            },
+
             // --- Helper para filtrar jogadores repetidos no Select ---
             getAvailablePlayers(contextObj, currentKey) {
-                // Coleta todos os nomes já selecionados neste contexto (Setup ou Manual)
                 const selected = [
                     contextObj.teamA1, contextObj.teamA2,
                     contextObj.teamB1, contextObj.teamB2
                 ];
-
-                // Retorna jogadores que NÃO estão selecionados (exceto se for o próprio campo atual)
                 return this.players.filter(p => {
                     return !selected.includes(p.name) || p.name === contextObj[currentKey];
                 });
@@ -631,7 +785,7 @@
                 });
             },
 
-            // --- DATA MANAGEMENT (PROTECTED) ---
+            // --- DATA MANAGEMENT ---
             addPlayer() {
                 if (!this.user) return alert("Faça login.");
                 const name = this.newPlayer.trim();
