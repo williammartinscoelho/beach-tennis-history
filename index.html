@@ -149,7 +149,7 @@
         .btn-point-b { background: var(--secondary); color: #000; }
         .btn-point-action:active { filter: brightness(0.9); }
 
-        /* Estilo Novo do Histórico */
+        /* Estilo Histórico */
         .history-card {
             background: var(--bg-card); border-radius: 12px; padding: 15px;
             margin-bottom: 15px; border-left: 5px solid #555;
@@ -159,7 +159,6 @@
         .history-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-muted); }
         .history-teams { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 600;}
         
-        /* Placar no Histórico (Simplificado) */
         .history-score-summary {
             background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;
             text-align: center; margin-bottom: 10px;
@@ -527,7 +526,12 @@
             </div>
         </div>
 
-        <h4 style="margin-bottom: 10px;">Histórico por Duplas</h4>
+        <h4 style="margin-bottom: 10px;">
+            Histórico por Duplas 
+            <span v-if="selectedDateFilter !== 'all'" style="font-size: 0.8rem; font-weight: normal; color: var(--secondary);">
+                ({{ selectedDateFilter }})
+            </span>
+        </h4>
         <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
             Resultados de acordo com o parceiro e dupla adversária:
         </div>
@@ -634,7 +638,6 @@
                 return uniquePlayers.size === 4;
             },
             
-            // --- DATAS ÚNICAS PARA O FILTRO ---
             uniqueDates() {
                 const dates = new Set();
                 this.matchHistory.forEach(m => {
@@ -642,25 +645,19 @@
                         dates.add(this.formatDateOnly(m.timestamp));
                     }
                 });
-                // Ordena datas decrescente (mais recente primeiro)
                 return Array.from(dates).sort((a,b) => {
-                    // Converte DD/MM/YYYY para comparação
                     const partsA = a.split('/'); const dateA = new Date(partsA[2], partsA[1]-1, partsA[0]);
                     const partsB = b.split('/'); const dateB = new Date(partsB[2], partsB[1]-1, partsB[0]);
                     return dateB - dateA;
                 });
             },
 
-            // --- RANKING (COM FILTRO) ---
             computedPlayerStats() {
                 const stats = {};
-                
-                // 1. Inicializa stats para todos os jogadores registrados
                 this.players.forEach(p => { 
                     stats[p.name] = { name: p.name, wins: 0, losses: 0, total: 0 }; 
                 });
 
-                // 2. Filtra as partidas com base na data selecionada
                 let filteredMatches = this.matchHistory;
                 if (this.selectedDateFilter !== 'all') {
                     filteredMatches = this.matchHistory.filter(m => 
@@ -668,7 +665,6 @@
                     );
                 }
 
-                // 3. Calcula stats usando apenas as partidas filtradas
                 filteredMatches.forEach(match => {
                     const statsA = match.finalStats;
                     let winner = null;
@@ -681,7 +677,6 @@
                     if (!winner) return;
 
                     const processPlayer = (playerName, team) => {
-                        // Garante que existe no objeto (caso tenha sido deletado ou filtrado antes)
                         if (!stats[playerName]) stats[playerName] = { name: playerName, wins: 0, losses: 0, total: 0 };
                         stats[playerName].total++;
                         if (winner === team) stats[playerName].wins++;
@@ -701,7 +696,15 @@
                 const targetName = this.selectedPlayerStats.name;
                 const matchups = {}; 
 
-                this.matchHistory.forEach(match => {
+                // --- FILTRO DE DATA APLICADO AQUI TAMBÉM ---
+                let filteredMatches = this.matchHistory;
+                if (this.selectedDateFilter !== 'all') {
+                    filteredMatches = this.matchHistory.filter(m => 
+                        this.formatDateOnly(m.timestamp) === this.selectedDateFilter
+                    );
+                }
+
+                filteredMatches.forEach(match => {
                     const inTeamA = match.playersA.includes(targetName);
                     const inTeamB = match.playersB.includes(targetName);
                     
@@ -831,7 +834,6 @@
                 const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
                 return date.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', hour: '2-digit', minute:'2-digit'});
             },
-            // Helper novo para o filtro (só data, sem hora)
             formatDateOnly(timestamp) {
                 if (!timestamp) return '';
                 const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
