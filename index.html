@@ -149,6 +149,7 @@
         .btn-point-b { background: var(--secondary); color: #000; }
         .btn-point-action:active { filter: brightness(0.9); }
 
+        /* Estilo Novo do Histórico */
         .history-card {
             background: var(--bg-card); border-radius: 12px; padding: 15px;
             margin-bottom: 15px; border-left: 5px solid #555;
@@ -156,12 +157,19 @@
         .history-card.winner-a { border-left-color: var(--primary); }
         .history-card.winner-b { border-left-color: var(--secondary); }
         .history-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-muted); }
-        .history-teams { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 600;}
+        .history-teams { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 600;}
+        
+        /* Placar no Histórico (Simplificado) */
         .history-score-summary {
-            background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;
-            display: flex; justify-content: space-around; text-align: center;
+            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;
+            text-align: center; margin-bottom: 10px;
         }
-        .history-final-score { font-size: 1.3rem; font-weight: bold; }
+        .score-display {
+            font-size: 2.2rem; font-weight: 900; letter-spacing: 2px;
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+        }
+        .score-divider { color: #555; font-size: 1.5rem; }
+        
         .manual-form {
             background: #2a2a2a; padding: 15px; border-radius: 12px;
             margin-bottom: 20px; border: 1px solid #444;
@@ -198,7 +206,6 @@
         .p-stat-val { font-size: 1.4rem; font-weight: bold; display: block; }
         .p-stat-lbl { font-size: 0.8rem; color: var(--text-muted); }
         
-        /* NOVOS ESTILOS DE MATCHUP */
         .matchup-list { margin-top: 20px; }
         .matchup-card {
             background: #252525; padding: 12px; margin-bottom: 10px; border-radius: 8px;
@@ -249,9 +256,7 @@
         <div v-if="view === 'player-details'" @click="view = 'stats'" style="cursor: pointer; font-size: 1.2rem; padding-right: 15px;">
             ⬅️
         </div>
-        
         <div class="header-title">Beach Tennis Cloud ☁️</div>
-        
         <button class="auth-btn" @click="toggleAuth">
             <span v-if="user" title="Admin Logado">🔓</span>
             <span v-else style="color: var(--danger);" title="Modo Leitura">🔒</span>
@@ -260,7 +265,6 @@
 
     <div class="screen" v-if="view === 'players'">
         <h3>Jogadores</h3>
-        
         <div v-if="user">
             <div class="form-group">
                 <input type="text" v-model="newPlayer" placeholder="Nome do Jogador" @keyup.enter="addPlayer">
@@ -270,7 +274,6 @@
         <div v-else style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-muted);">
             Faça login para cadastrar novos jogadores.
         </div>
-
         <div class="player-list">
             <div style="margin-bottom: 10px; color: var(--text-muted)">Registados ({{ players.length }})</div>
             <div class="player-item" v-for="player in players" :key="player.id">
@@ -282,13 +285,11 @@
 
     <div class="screen" v-if="view === 'setup'">
         <h3>Configurar Partida</h3>
-        
         <div v-if="!user" class="login-placeholder">
             <div style="font-size: 3rem;">🔒</div>
             <p>Apenas administradores podem iniciar partidas.</p>
             <button class="btn btn-outline" @click="showLoginModal = true">Fazer Login</button>
         </div>
-
         <div v-else>
             <div class="form-group">
                 <label>Games por Set</label>
@@ -300,7 +301,6 @@
                     <option value="9">9 Games (Longo)</option>
                 </select>
             </div>
-
             <div class="form-group" style="border-left: 4px solid var(--primary); padding-left: 10px;">
                 <label class="team-a-color" style="font-weight: bold;">TIME A (Laranja)</label>
                 <select v-model="matchSetup.teamA1" style="margin-bottom: 10px;">
@@ -312,7 +312,6 @@
                     <option v-for="p in getAvailablePlayers(matchSetup, 'teamA2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
-
             <div class="form-group" style="border-left: 4px solid var(--secondary); padding-left: 10px; margin-top: 20px;">
                 <label class="team-b-color" style="font-weight: bold;">TIME B (Turquesa)</label>
                 <select v-model="matchSetup.teamB1" style="margin-bottom: 10px;">
@@ -324,7 +323,6 @@
                     <option v-for="p in getAvailablePlayers(matchSetup, 'teamB2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
-
             <button class="btn btn-primary" @click="startMatch" :disabled="!isValidSetup" style="margin-top: 20px;">
                 INICIAR JOGO AGORA
             </button>
@@ -347,13 +345,11 @@
                     <span class="score-val">{{ currentMatch.setsB }}</span>
                 </div>
             </div>
-
             <div class="undo-bar">
                 <button class="btn btn-warning" @click="undoPoint" :disabled="currentMatch.history.length === 0">
                     ↩ Desfazer Último Ponto
                 </button>
             </div>
-
             <div class="points-area">
                 <div class="team-column team-a-col">
                     <div class="team-names-overlay team-a-color">
@@ -366,7 +362,6 @@
                         PONTO A
                     </button>
                 </div>
-
                 <div class="team-column team-b-col">
                     <div class="team-names-overlay team-b-color">
                         {{ matchSetup.teamB1 }} <br> {{ matchSetup.teamB2 }}
@@ -379,7 +374,6 @@
                     </button>
                 </div>
             </div>
-
             <div style="margin-top: 15px;">
                  <button class="btn btn-danger" @click="endMatchAndSave">Finalizar Partida</button>
             </div>
@@ -406,7 +400,6 @@
                     <option v-for="p in getAvailablePlayers(manualMatch, 'teamA2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
-
             <label class="team-b-color" style="margin-top: 10px;">Time B</label>
             <div class="score-inputs">
                 <select v-model="manualMatch.teamB1" style="font-size: 0.9rem; padding: 10px; width: 48%;">
@@ -418,7 +411,6 @@
                     <option v-for="p in getAvailablePlayers(manualMatch, 'teamB2')" :value="p.name">{{ p.name }}</option>
                 </select>
             </div>
-
             <label style="margin-top: 15px; text-align: center;">Placar Final (Games)</label>
             <div class="score-inputs">
                 <div class="score-input-group">
@@ -431,7 +423,6 @@
                     <input type="number" v-model.number="manualMatch.gamesB" min="0" style="text-align: center;">
                 </div>
             </div>
-
             <button class="btn btn-primary" style="margin-top: 15px;" @click="saveManualMatch">Salvar no Cloud</button>
         </div>
 
@@ -456,21 +447,14 @@
             </div>
 
             <div class="history-score-summary">
-                <div>
-                    <small>Sets</small>
-                    <div class="history-final-score">
-                        <span class="team-a-color">{{ match.finalStats.setsA }}</span>
-                        -
-                        <span class="team-b-color">{{ match.finalStats.setsB }}</span>
-                    </div>
+                <div class="score-display">
+                    <span class="team-a-color">{{ match.finalStats.gamesA }}</span>
+                    <span class="score-divider">-</span>
+                    <span class="team-b-color">{{ match.finalStats.gamesB }}</span>
                 </div>
-                 <div>
-                    <small>Games</small>
-                    <div style="font-size: 1.1rem; margin-top: 5px;">
-                        <span class="team-a-color">{{ match.finalStats.gamesA }}</span> - <span class="team-b-color">{{ match.finalStats.gamesB }}</span>
-                    </div>
-                </div>
+                <small style="color: var(--text-muted); display:block; margin-top: 5px;">Games</small>
             </div>
+            
              <div style="text-align: center; margin-top: 10px; font-size: 0.9rem;">
                 Vencedor: <strong>{{ match.winner }}</strong>
             </div>
@@ -479,10 +463,20 @@
 
     <div class="screen" v-if="view === 'stats'">
         <h3>Ranking (Firebase)</h3>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <select v-model="selectedDateFilter">
+                <option value="all">📅 Ranking Geral (Todas as Datas)</option>
+                <option v-for="date in uniqueDates" :key="date" :value="date">
+                    📅 {{ date }}
+                </option>
+            </select>
+        </div>
+
         <p style="font-size: 0.8rem; color: var(--text-muted);">Toque num nome para ver detalhes</p>
         
         <div v-if="computedPlayerStats.length === 0" style="text-align: center; color: var(--text-muted); margin-top: 50px;">
-            Sem dados suficientes.
+            Sem dados para o período selecionado.
         </div>
 
         <table class="stats-table" v-else>
@@ -580,7 +574,6 @@
 </div>
 
 <script>
-    // --- CONFIGURAÇÃO DO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyCAZ7dVN0SZE6YGkDe35MrAfQZAzbIT_gU",
         authDomain: "beach-tennis-history.firebaseapp.com",
@@ -596,8 +589,6 @@
         data: {
             db: null,
             loading: true,
-            
-            // AUTH STATE
             user: null, 
             showLoginModal: false,
             authEmail: '',
@@ -609,9 +600,10 @@
             players: [],
             matchHistory: [],
             
-            // Player Details Logic
+            // FILTRO DE DATA
+            selectedDateFilter: 'all',
+
             selectedPlayerStats: null,
-            
             showHistoryForm: false,
             manualMatch: { teamA1: '', teamA2: '', teamB1: '', teamB2: '', gamesA: 0, gamesB: 0 },
             matchSetup: { gamesPerSet: 6, teamA1: '', teamA2: '', teamB1: '', teamB2: '' },
@@ -623,12 +615,10 @@
                     firebase.initializeApp(firebaseConfig);
                 }
                 this.db = firebase.firestore();
-                
                 firebase.auth().onAuthStateChanged(user => {
                     this.user = user;
                     this.loading = false;
                 });
-
                 this.listenToFirebase();
             } catch (error) {
                 console.error("Config Error", error);
@@ -643,10 +633,43 @@
                 const uniquePlayers = new Set([s.teamA1, s.teamA2, s.teamB1, s.teamB2]);
                 return uniquePlayers.size === 4;
             },
+            
+            // --- DATAS ÚNICAS PARA O FILTRO ---
+            uniqueDates() {
+                const dates = new Set();
+                this.matchHistory.forEach(m => {
+                    if (m.timestamp) {
+                        dates.add(this.formatDateOnly(m.timestamp));
+                    }
+                });
+                // Ordena datas decrescente (mais recente primeiro)
+                return Array.from(dates).sort((a,b) => {
+                    // Converte DD/MM/YYYY para comparação
+                    const partsA = a.split('/'); const dateA = new Date(partsA[2], partsA[1]-1, partsA[0]);
+                    const partsB = b.split('/'); const dateB = new Date(partsB[2], partsB[1]-1, partsB[0]);
+                    return dateB - dateA;
+                });
+            },
+
+            // --- RANKING (COM FILTRO) ---
             computedPlayerStats() {
                 const stats = {};
-                this.players.forEach(p => { stats[p.name] = { name: p.name, wins: 0, losses: 0, total: 0 }; });
-                this.matchHistory.forEach(match => {
+                
+                // 1. Inicializa stats para todos os jogadores registrados
+                this.players.forEach(p => { 
+                    stats[p.name] = { name: p.name, wins: 0, losses: 0, total: 0 }; 
+                });
+
+                // 2. Filtra as partidas com base na data selecionada
+                let filteredMatches = this.matchHistory;
+                if (this.selectedDateFilter !== 'all') {
+                    filteredMatches = this.matchHistory.filter(m => 
+                        this.formatDateOnly(m.timestamp) === this.selectedDateFilter
+                    );
+                }
+
+                // 3. Calcula stats usando apenas as partidas filtradas
+                filteredMatches.forEach(match => {
                     const statsA = match.finalStats;
                     let winner = null;
                     if (statsA.setsA > statsA.setsB) winner = 'A';
@@ -658,6 +681,7 @@
                     if (!winner) return;
 
                     const processPlayer = (playerName, team) => {
+                        // Garante que existe no objeto (caso tenha sido deletado ou filtrado antes)
                         if (!stats[playerName]) stats[playerName] = { name: playerName, wins: 0, losses: 0, total: 0 };
                         stats[playerName].total++;
                         if (winner === team) stats[playerName].wins++;
@@ -666,40 +690,32 @@
                     match.playersA.forEach(p => processPlayer(p, 'A'));
                     match.playersB.forEach(p => processPlayer(p, 'B'));
                 });
+
                 return Object.values(stats)
                     .map(s => { s.winRate = s.total === 0 ? 0 : Math.round((s.wins / s.total) * 100); return s; })
                     .sort((a, b) => { if (b.wins !== a.wins) return b.wins - a.wins; return b.winRate - a.winRate; });
             },
             
-            // --- NOVA LÓGICA DE DUPLAS ---
             playerDoublesStats() {
                 if (!this.selectedPlayerStats) return [];
-                
                 const targetName = this.selectedPlayerStats.name;
-                const matchups = {}; // Chave: "Parceiro|Rival1|Rival2"
+                const matchups = {}; 
 
                 this.matchHistory.forEach(match => {
-                    // 1. Verifica se o jogador alvo jogou
                     const inTeamA = match.playersA.includes(targetName);
                     const inTeamB = match.playersB.includes(targetName);
                     
                     if (!inTeamA && !inTeamB) return; 
 
-                    // 2. Define o Time e os Adversários
                     const myTeamArr = inTeamA ? match.playersA : match.playersB;
                     const enemyTeamArr = inTeamA ? match.playersB : match.playersA;
                     
-                    // 3. Descobre o parceiro (quem sobrou no meu time)
                     const partner = myTeamArr.find(p => p !== targetName);
-                    if (!partner) return; // Segurança caso seja 1x1
+                    if (!partner) return;
 
-                    // 4. Padroniza a string dos rivais (Ordem alfabética para A&B ser igual a B&A)
                     const enemiesStr = [...enemyTeamArr].sort().join(' & ');
-
-                    // 5. Cria uma chave única para agrupar
                     const key = `${partner} -> ${enemiesStr}`;
 
-                    // 6. Define Vencedor
                     const stats = match.finalStats;
                     let winner = null;
                     if (stats.setsA > stats.setsB) winner = 'A';
@@ -712,20 +728,14 @@
                     if (!winner) return;
                     const iWon = (winner === (inTeamA ? 'A' : 'B'));
 
-                    // 7. Agrega dados
                     if (!matchups[key]) {
-                        matchups[key] = {
-                            partner: partner,
-                            enemies: enemiesStr,
-                            wins: 0, losses: 0, games: 0
-                        };
+                        matchups[key] = { partner: partner, enemies: enemiesStr, wins: 0, losses: 0, games: 0 };
                     }
                     matchups[key].games++;
                     if (iWon) matchups[key].wins++;
                     else matchups[key].losses++;
                 });
 
-                // Transforma em array e ordena por qtde de jogos
                 return Object.values(matchups).sort((a, b) => b.games - a.games);
             }
         },
@@ -734,8 +744,6 @@
                 this.selectedPlayerStats = playerStat;
                 this.view = 'player-details';
             },
-
-            // --- Helper para filtrar jogadores repetidos no Select ---
             getAvailablePlayers(contextObj, currentKey) {
                 const selected = [
                     contextObj.teamA1, contextObj.teamA2,
@@ -745,14 +753,11 @@
                     return !selected.includes(p.name) || p.name === contextObj[currentKey];
                 });
             },
-
-            // --- AUTH METHODS ---
             toggleAuth() {
                 if (this.user) {
                     if(confirm("Deseja sair (Logout)?")) {
                         firebase.auth().signOut();
-                        this.authPassword = ''; 
-                        this.showPassword = false;
+                        this.authPassword = ''; this.showPassword = false;
                     }
                 } else {
                     this.showLoginModal = true;
@@ -760,22 +765,13 @@
             },
             login() {
                 if(!this.authEmail || !this.authPassword) return alert("Preencha e-mail e senha");
-                
                 this.loading = true;
                 firebase.auth().signInWithEmailAndPassword(this.authEmail, this.authPassword)
                     .then(() => {
-                        this.showLoginModal = false;
-                        this.authPassword = ''; 
-                        this.showPassword = false;
-                        this.loading = false;
+                        this.showLoginModal = false; this.authPassword = ''; this.showPassword = false; this.loading = false;
                     })
-                    .catch(error => {
-                        alert("Erro no login: " + error.message);
-                        this.loading = false;
-                    });
+                    .catch(error => { alert("Erro no login: " + error.message); this.loading = false; });
             },
-
-            // --- FIREBASE LISTENERS ---
             listenToFirebase() {
                 this.db.collection('players').orderBy('name').onSnapshot(snapshot => {
                     this.players = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
@@ -784,14 +780,11 @@
                     this.matchHistory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 });
             },
-
-            // --- DATA MANAGEMENT ---
             addPlayer() {
                 if (!this.user) return alert("Faça login.");
                 const name = this.newPlayer.trim();
                 if (name === '') return;
                 if (this.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return alert('Já existe!');
-
                 this.loading = true;
                 this.db.collection('players').add({ name: name, createdAt: new Date() })
                     .then(() => { this.newPlayer = ''; this.loading = false; })
@@ -801,8 +794,6 @@
                 if (!this.user) return;
                 if(confirm(`Remover ${player.name}?`)) this.db.collection('players').doc(player.id).delete();
             },
-
-            // --- GAME LOGIC ---
             startMatch() {
                 this.currentMatch = { pointsA: 0, pointsB: 0, gamesA: 0, gamesB: 0, setsA: 0, setsB: 0, history: [] };
                 this.view = 'match';
@@ -839,6 +830,12 @@
                 if (!timestamp) return '';
                 const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
                 return date.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', hour: '2-digit', minute:'2-digit'});
+            },
+            // Helper novo para o filtro (só data, sem hora)
+            formatDateOnly(timestamp) {
+                if (!timestamp) return '';
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('pt-PT', {day:'2-digit', month:'2-digit', year:'numeric'});
             },
             createHistoryRecord(pA, pB, stats) {
                 let wStr = 'Indefinido'; let wCls = '';
